@@ -334,6 +334,7 @@
 #include "ob_expr_initcap.h"
 #include "ob_expr_temp_table_ssid.h"
 #include "ob_expr_align_date4cmp.h"
+#include "ob_expr_hello.h"
 
 namespace oceanbase
 {

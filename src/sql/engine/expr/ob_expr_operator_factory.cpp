@@ -403,6 +403,7 @@
 #include "sql/engine/expr/ob_expr_update_xml.h"
 #include "sql/engine/expr/ob_expr_temp_table_ssid.h"
 #include "sql/engine/expr/ob_expr_align_date4cmp.h"
+#include "sql/engine/expr/ob_expr_hello.h"
 
 using namespace oceanbase::common;
 namespace oceanbase
@@ -803,6 +804,7 @@ void ObExprOperatorFactory::register_expr_operators()
     REG_OP(ObExprAnyValue);
     REG_OP(ObExprUuidShort);
     REG_OP(ObExprRandomBytes);
+    REG_OP(ObExprHello);
     /* subquery comparison experator */
     REG_OP(ObExprSubQueryRef);
     REG_OP(ObExprSubQueryEqual);
