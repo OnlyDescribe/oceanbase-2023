@@ -120,11 +120,11 @@ if __name__ == "__main__":
 
     os.chdir(args.cluster_home_path)
     observer_cmd = f"{bin_abs_path} {observer_args}"
-    _logger.info(observer_cmd)
-    shell_result = subprocess.run(observer_cmd, shell=True)
-    _logger.info('deploy done. returncode=%d', shell_result.returncode)
+    # _logger.info(observer_cmd)
+    # shell_result = subprocess.run(observer_cmd, shell=True)
+    # _logger.info('deploy done. returncode=%d', shell_result.returncode)
 
-    time.sleep(2)
+    # time.sleep(2)
     try:
         db = __try_to_connect(args.ip, int(args.mysql_port))
         cursor = db.cursor(cursor=mysql.cursors.DictCursor)
@@ -135,14 +135,15 @@ if __name__ == "__main__":
         bootstrap_end = datetime.datetime.now()
         _logger.info('bootstrap success: %s ms' % ((bootstrap_end - bootstrap_begin).total_seconds() * 1000))
         # checkout server status
-        cursor.execute("select * from oceanbase.__all_server")
-        server_status = cursor.fetchall()
-        if len(server_status) != 1 or server_status[0]['status'] != 'ACTIVE':
-            _logger.info("get server status failed")
-            exit(1)
-        _logger.info('checkout server status ok')
+        # cursor.execute("select * from oceanbase.__all_server")
+        # server_status = cursor.fetchall()
+        # if len(server_status) != 1 or server_status[0]['status'] != 'ACTIVE':
+        #     _logger.info("get server status failed")
+        #     exit(1)
+        # _logger.info('checkout server status ok')
         # ObRootService::check_config_result
-
+        
+        create_tenant_begin = datetime.datetime.now()
         __create_tenant(cursor,
                         cpu=args.tenant_cpu,
                         memory_size=args.tenant_memory,
@@ -150,7 +151,9 @@ if __name__ == "__main__":
                         resource_pool_name=args.tenant_resource_pool_name,
                         zone_name=args.zone,
                         tenant_name=args.tenant_name)
-        _logger.info('create tenant done')
+        create_tenant_end = datetime.datetime.now()
+        _logger.info('create tenant done: %s ms' % ((create_tenant_end - create_tenant_begin).total_seconds() * 1000))
+
 
     except mysql.err.Error as e:
         _logger.info("deploy observer failed. ex=%s", str(e))
