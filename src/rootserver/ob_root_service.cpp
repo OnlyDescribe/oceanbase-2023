@@ -5554,7 +5554,7 @@ int ObRootService::ObRefreshServerTask::process()
 {
   int ret = OB_SUCCESS;
   const bool load_frozen_status = true;
-  const bool need_retry = true;
+  const bool need_retry = false;
   FLOG_INFO("refresh server task process");
   ObLatchRGuard guard(root_service_.bootstrap_lock_, ObLatchIds::RS_BOOTSTRAP_LOCK);
   if (OB_FAIL(root_service_.refresh_server(load_frozen_status, need_retry))) {
