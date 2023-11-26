@@ -345,3 +345,5 @@ deps/3rd
 ############# test #############
 test/tmp
 test/var
+
+script/profile/perf*
