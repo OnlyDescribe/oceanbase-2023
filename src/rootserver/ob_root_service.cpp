@@ -1082,9 +1082,9 @@ int ObRootService::start_service()
       FLOG_WARN("lst_operator set as rs leader failed", KR(ret));
     } else if (OB_FAIL(rs_status_.set_rs_status(status::IN_SERVICE))) {
       FLOG_WARN("fail to set rs status", KR(ret));
-    } else if (OB_FAIL(schedule_refresh_server_timer_task(0))) {
+    } else if (OB_FAIL(schedule_refresh_server_timer_task(1000000))) {
       FLOG_WARN("failed to schedule refresh_server task", KR(ret));
-    } else if (OB_FAIL(schedule_restart_timer_task(0))) {
+    } else if (OB_FAIL(schedule_restart_timer_task(1000000))) {
       FLOG_WARN("failed to schedule restart task", KR(ret));
     } else if (OB_FAIL(schema_service_->get_ddl_epoch_mgr().remove_all_ddl_epoch())) {
       FLOG_WARN("fail to remove ddl epoch", KR(ret));
@@ -5554,7 +5554,7 @@ int ObRootService::ObRefreshServerTask::process()
 {
   int ret = OB_SUCCESS;
   const bool load_frozen_status = true;
-  const bool need_retry = false;
+  const bool need_retry = true;
   FLOG_INFO("refresh server task process");
   ObLatchRGuard guard(root_service_.bootstrap_lock_, ObLatchIds::RS_BOOTSTRAP_LOCK);
   if (OB_FAIL(root_service_.refresh_server(load_frozen_status, need_retry))) {
