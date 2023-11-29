@@ -16,3 +16,6 @@ cd $profile_dir
 python3 deploy_observer.py --cluster-home-path="$cluster_home_path"
 # python3 deploy_bootstrap.py --cluster-home-path="/home/oldcb/Desktop/ob/data/obcluster"
 # python3 deploy_bootstrap.py --cluster-home-path="/data/obcluster"
+
+# rm /home/oldcb/Desktop/ob/data/obcluster/bin/observer
+# cp /home/oldcb/Desktop/ob/oceanbase-2023/build_debug/src/observer/observer /home/oldcb/Desktop/ob/data/obcluster/bin/

@@ -121,8 +121,37 @@ int ElectionProposer::set_member_list(const MemberList &new_member_list)
     if (CLICK_FAIL(memberlist_with_states_.set_member_list(new_member_list))) {
       LOG_SET_MEMBER(WARN, "set new member list failed");
     } else {
-      if (old_list.get_addr_list().empty() && new_member_list.get_addr_list().count() == 1) {// 单副本第一次设置成员列表
+      if (old_list.get_addr_list().empty() && new_member_list.get_addr_list().count() == 1 
+                                           && new_member_list.get_replica_num() != 1) {// 单副本第一次设置成员列表
         prepare(ObRole::FOLLOWER);
+      }
+      // 初始单机情况, 直接跳过第一次选主过程直接设置主
+      if (old_list.get_addr_list().empty() && new_member_list.get_addr_list().count() == 1 
+                                                && new_member_list.get_replica_num() == 1) {
+        // 参照 advance_ballot_number_and_reset_related_states_()
+        // 清理切主流程中的相关状态
+        ballot_number_ = 1;
+        switch_source_leader_ballot_ = 0;
+        switch_source_leader_addr_.reset();
+        // 更新lease和允许成员变更的版本号
+        leader_lease_and_epoch_.reset();
+        prepare_success_ballot_ = 1;
+        int64_t lease = MAX_LEASE_TIME + get_monotonic_ts(); // 度过静默时间
+        leader_lease_and_epoch_.set_lease_and_epoch_if_lease_expired_or_just_set_lease(lease, prepare_success_ballot_);
+        // 参照 leader_takeover_if_lease_valid_()
+        highest_priority_cache_.reset();
+        role_ = ObRole::LEADER;
+        propose();
+        prepare(ObRole::LEADER);
+        // 参照 record_accept_ok() + ElectionAcceptor::on_accept_request()
+        memberlist_with_states_.clear_prepare_and_accept_states(); 
+
+        int64_t &write_ts = memberlist_with_states_.get_p_impl()->accept_ok_promise_not_vote_before_local_ts_[0];
+        write_ts = int64_t(get_monotonic_ts() + CALCULATE_LEASE_INTERVAL());
+        LogConfigVersion &write_version = memberlist_with_states_.get_p_impl()->follower_renew_lease_success_membership_version_[0];
+        write_version.generate(0, 1);
+        (p_election_->role_change_cb_)(p_election_, ObRole::FOLLOWER, ObRole::LEADER, RoleChangeReason::DevoteToBeLeader);
+        LOG_CHANGE_LEADER(INFO, "Single-node Scenario: Set leader.");
       }
       if (old_list.only_membership_version_different(new_member_list)) {
         LOG_SET_MEMBER(INFO, "advance membership version");

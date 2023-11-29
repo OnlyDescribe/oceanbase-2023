@@ -160,15 +160,6 @@ int ObLSLeaderElectionWaiter::wait_elect_leader(
 {
   int ret = OB_SUCCESS;
   ObLSInfo ls_info;
-  // // TODO: single server mode
-  // if (OB_FAIL(lst_operator_.get(GCONF.cluster_id, tenant_id,
-  //     ls_id, share::ObLSTable::DEFAULT_MODE, ls_info))) {
-  //   LOG_WARN("get partition info failed", K(tenant_id), K(ls_id), KR(ret));
-  // } else if (ls_info.replica_count() == 1) {
-  //   leader = ls_info.get_replicas().at(0).get_server();
-  //   return ret;
-  // }
-
   const ObLSReplica *leader_replica = NULL;
   if (OB_UNLIKELY(OB_INVALID_ID == tenant_id
                   || !ls_id.is_valid())
