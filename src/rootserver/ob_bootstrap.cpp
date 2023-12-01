@@ -9,7 +9,12 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PubL v2 for more details.
  */
-
+#include <mutex>
+#include <thread>
+#include "lib/ob_define.h"
+#include "lib/oblog/ob_log_module.h"
+#include "lib/thread/thread_mgr.h"
+#include "lib/utility/ob_macro_utils.h"
 #define USING_LOG_PREFIX BOOTSTRAP
 
 #include "rootserver/ob_bootstrap.h"
@@ -893,6 +898,55 @@ int ObBootstrap::construct_all_schema(ObIArray<ObTableSchema> &table_schemas)
   return ret;
 }
 
+int ObBootstrap::parallel_create_table_schema(ObDDLService &ddl_service, ObIArray<ObTableSchema> &table_schemas, int start, int end)
+{
+  int ret = OB_SUCCESS;
+  int64_t begin = 0;
+  int64_t batch_count = table_schemas.count() / BATCH_DO_THREAD_NUM;
+  const int64_t MAX_RETRY_TIMES = 10;
+  int64_t finish_cnt = 0;
+  std::vector<std::thread> ths;
+  ObCurTraceId::TraceId *cur_trace_id = ObCurTraceId::get_trace_id();
+
+  for (int64_t i = 0; OB_SUCC(ret) && i < table_schemas.count(); ++i) {
+    if (table_schemas.count() == (i + 1) || (i + 1 - begin) >= batch_count) {
+      std::thread th([&, begin, i, cur_trace_id]() {
+        lib::set_thread_name("batch_do", ths.size());
+        int ret = OB_SUCCESS;
+        ObCurTraceId::set(*cur_trace_id);
+        int64_t retry_times = 1;
+        while (OB_SUCC(ret)) {
+          if (OB_FAIL(batch_create_schema(ddl_service, table_schemas, begin, i + 1))) {
+            LOG_WARN("batch create schema failed", K(ret), "table count", i + 1 - begin);
+            if (retry_times <= MAX_RETRY_TIMES) {
+              retry_times++;
+              ret = OB_SUCCESS;
+              LOG_INFO("schema error while create table, need retry", KR(ret), K(retry_times));
+              usleep(1 * 1000 * 1000L); // 1s
+            }
+          } else {
+            ATOMIC_AAF(&finish_cnt, i + 1 - begin);
+            break;
+          }
+        }
+        LOG_INFO("worker job", K(begin), K(i), K(i-begin), K(ret));
+      });
+      ths.push_back(std::move(th));
+      if (OB_SUCC(ret)) {
+        begin = i + 1;
+      }
+    }
+  }
+  for (auto &th : ths) {
+    th.join();
+  }
+  if (finish_cnt != table_schemas.count()) {
+    ret = OB_ERR_UNEXPECTED;
+    LOG_WARN("parallel_create_table_schema fail", K(finish_cnt), K(table_schemas.count()), K(ret));
+  }
+  return ret;
+}
+
 int ObBootstrap::broadcast_sys_schema(const ObSArray<ObTableSchema> &table_schemas)
 {
   int ret = OB_SUCCESS;
@@ -963,33 +1017,141 @@ int ObBootstrap::create_all_schema(ObDDLService &ddl_service,
       }
     }
 
-    int64_t begin = 0;
-    int64_t batch_count = BATCH_INSERT_SCHEMA_CNT;
-    const int64_t MAX_RETRY_TIMES = 3;
-    for (int64_t i = 0; OB_SUCC(ret) && i < table_schemas.count(); ++i) {
-      if (table_schemas.count() == (i + 1) || (i + 1 - begin) >= batch_count) {
+    // 批量插入的runnable, 一共开BATCH_DO_THREAD_NUM个线程
+    class BatchCreateRunnable : public TGRunnable
+    {
+    using pii = std::pair<int,int>;
+    public:
+      void run1() override {
+        if (IS_NOT_INIT) {
+          return;
+        }
+        int t = get_thread_idx();
+        
+        lib::set_thread_name("batch_do", t);
+
         int64_t retry_times = 1;
-        while (OB_SUCC(ret)) {
-          if (OB_FAIL(batch_create_schema(ddl_service, table_schemas, begin, i + 1))) {
-            LOG_WARN("batch create schema failed", K(ret), "table count", i + 1 - begin);
-            // bugfix:
-            if ((OB_SCHEMA_EAGAIN == ret
-                 || OB_ERR_WAIT_REMOTE_SCHEMA_REFRESH == ret)
-                && retry_times <= MAX_RETRY_TIMES) {
-              retry_times++;
-              ret = OB_SUCCESS;
-              LOG_INFO("schema error while create table, need retry", KR(ret), K(retry_times));
-              ob_usleep(1 * 1000 * 1000L); // 1s
-            }
-          } else {
+
+        while (ques_.size()) {
+          std::unique_lock<std::mutex> lk(mu_);
+          if (ques_.empty()) 
             break;
+
+          auto task = ques_.front();
+          ques_.pop();
+          int start = task.first, end = task.second;
+          lk.unlock();
+
+          int ret = OB_SUCCESS;
+          while (OB_SUCC(ret)) {
+            if (OB_FAIL(batch_create_schema(*ddl_service_, *table_schemas_, start, end))) {
+              LOG_WARN("batch create schema failed", K(ret), "table count", end - start, "t: ", t, "start: ", start);
+              // bugfix:
+              if ((OB_SCHEMA_EAGAIN == ret || ret == OB_TABLE_NOT_EXIST
+                  || OB_ERR_WAIT_REMOTE_SCHEMA_REFRESH == ret)
+                  && retry_times <= MAX_RETRY_TIMES) {
+                retry_times++;
+                ret = OB_SUCCESS;
+                LOG_INFO("schema error while create table, need retry", KR(ret), K(retry_times));
+                ob_usleep(1 * 1000 * 1000L); // 1s
+              }
+            } else {
+              break;
+            }
           }
         }
-        if (OB_SUCC(ret)) {
-          begin = i + 1;
+      }
+      void init(ObIArray<ObTableSchema> *table_schemas,
+                ObDDLService *ddl_service) {
+        if (IS_NOT_INIT) {
+          int ret = OB_SUCCESS;
+          table_schemas_ = table_schemas;
+          ddl_service_ = ddl_service;
+          is_inited_ = true;
+
+          for (int i = 0, last_i = 0; i < table_schemas_->count(); i++) {
+            if (i - last_i + 1 >= BATCH_COUNT ||
+                i == table_schemas_->count() - 1) {
+              ques_.push({last_i, i + 1});
+              last_i = i + 1;
+            }
+          }
+          if (OB_FAIL(TG_CREATE_TENANT(TGDefIDs::BATCH_DO, tg_id_))) {
+            LOG_WARN("create tg_id_no succeed");
+          }
         }
       }
+
+      int start() {
+        int ret = OB_SUCCESS;
+        if (IS_NOT_INIT) {
+          ret = OB_NOT_INIT;
+          LOG_WARN("NOT_INIT");
+        } else if (OB_FAIL(TG_SET_RUNNABLE_AND_START(tg_id_, *this))) {
+          LOG_WARN("start thread fail");
+        }
+        return ret;
+      }
+
+      void wait() { TG_WAIT(tg_id_); }
+
+      void stop() { TG_STOP(tg_id_); }
+
+      void destroy() { TG_DESTROY(tg_id_); }
+
+      int tg_id_;
+
+    private:
+      // not own this
+      ObDDLService* ddl_service_ = nullptr;
+      ObIArray<ObTableSchema> *table_schemas_{nullptr};
+      std::queue<pii> ques_;
+      std::mutex mu_;
+      bool is_inited_{false};
+      const int64_t MAX_RETRY_TIMES = 20;
+      const int64_t BATCH_COUNT = 16;
+    };
+
+    if (OB_SUCC(ret)) {
+      BatchCreateRunnable batch_create_runnable;
+      batch_create_runnable.init(&table_schemas, &ddl_service);
+      batch_create_runnable.start();
+      batch_create_runnable.wait();
+      batch_create_runnable.stop();
+      batch_create_runnable.destroy();
     }
+
+    // if (OB_FAIL(parallel_create_table_schema(ddl_service, table_schemas))) {
+    //   LOG_WARN("parallel_create_table_schema fail", KR(ret));
+    // }
+
+    // int64_t begin = 0;
+    // int64_t batch_count = BATCH_INSERT_SCHEMA_CNT;
+    // const int64_t MAX_RETRY_TIMES = 3;
+    // for (int64_t i = 0; OB_SUCC(ret) && i < table_schemas.count(); ++i) {
+    //   if (table_schemas.count() == (i + 1) || (i + 1 - begin) >= batch_count) {
+    //     int64_t retry_times = 1;
+    //     while (OB_SUCC(ret)) {
+    //       if (OB_FAIL(batch_create_schema(ddl_service, table_schemas, begin, i + 1))) {
+    //         LOG_WARN("batch create schema failed", K(ret), "table count", i + 1 - begin);
+    //         // bugfix:
+    //         if ((OB_SCHEMA_EAGAIN == ret
+    //              || OB_ERR_WAIT_REMOTE_SCHEMA_REFRESH == ret)
+    //             && retry_times <= MAX_RETRY_TIMES) {
+    //           retry_times++;
+    //           ret = OB_SUCCESS;
+    //           LOG_INFO("schema error while create table, need retry", KR(ret), K(retry_times));
+    //           ob_usleep(1 * 1000 * 1000L); // 1s
+    //         }
+    //       } else {
+    //         break;
+    //       }
+    //     }
+    //     if (OB_SUCC(ret)) {
+    //       begin = i + 1;
+    //     }
+    //   }
+    // }
   }
   LOG_INFO("end create all schemas", K(ret), "table count", table_schemas.count(),
            "time_used", ObTimeUtility::current_time() - begin_time);
@@ -1049,9 +1211,11 @@ int ObBootstrap::batch_create_schema(ObDDLService &ddl_service,
     }
   }
   const int64_t now = ObTimeUtility::current_time();
-  LOG_INFO("batch create schema finish", K(ret), "table count", end - begin,
-      "total_time_used", now - begin_time,
-      "end_transaction_time_used", now - begin_commit_time);
+  if (OB_SUCC(ret)) {
+    LOG_INFO("batch create schema finish", K(ret), "table count", end - begin, "begin", begin, "end", end,
+    "total_time_used", now - begin_time,
+    "end_transaction_time_used", now - begin_commit_time);
+  }
   //BOOTSTRAP_CHECK_SUCCESS();
   return ret;
 }

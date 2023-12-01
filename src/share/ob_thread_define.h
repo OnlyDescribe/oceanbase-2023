@@ -11,11 +11,13 @@
  */
 
 #ifdef TG_DEF
+#define BATCH_DO_THREAD_NUM 16
 #define GET_THREAD_NUM_BY_NPROCESSORS(factor) (sysconf(_SC_NPROCESSORS_ONLN) / (factor) > 0 ? sysconf(_SC_NPROCESSORS_ONLN) / (factor) : 1)
 #define GET_THREAD_NUM_BY_NPROCESSORS_WITH_LIMIT(factor, limit) (sysconf(_SC_NPROCESSORS_ONLN) / (factor) > 0 ? min(sysconf(_SC_NPROCESSORS_ONLN) / (factor), limit) : 1)
 #define GET_MYSQL_THREAD_COUNT(default_cnt) (GCONF.sql_login_thread_count ? GCONF.sql_login_thread_count : (default_cnt))
 TG_DEF(TEST_OB_TH, testObTh, THREAD_POOL, 1)
 TG_DEF(COMMON_THREAD_POOL, ComTh, THREAD_POOL, 1)
+TG_DEF(BATCH_DO, BATCH_DO, THREAD_POOL, BATCH_DO_THREAD_NUM)
 TG_DEF(COMMON_QUEUE_THREAD, ComQueueTh, QUEUE_THREAD, 1, 100)
 TG_DEF(COMMON_TIMER_THREAD, ComTimerTh, TIMER)
 TG_DEF(Blacklist, Blacklist, THREAD_POOL, 1)
