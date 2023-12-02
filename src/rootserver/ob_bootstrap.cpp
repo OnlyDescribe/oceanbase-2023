@@ -1118,7 +1118,7 @@ int ObBootstrap::create_all_schema(ObDDLService &ddl_service,
       batch_create_runnable.start();
       batch_create_runnable.wait();
       batch_create_runnable.stop();
-      batch_create_runnable.destroy();
+      // batch_create_runnable.destroy();
     }
 
     // if (OB_FAIL(parallel_create_table_schema(ddl_service, table_schemas))) {
