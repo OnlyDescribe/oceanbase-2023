@@ -2011,11 +2011,13 @@ private:
       const share::ObTenantRole &tenant_role,
       const share::SCN &recovery_until_scn,
       share::schema::ObSysVariableSchema &sys_variable,
-      const bool create_ls_with_palf,
-      const palf::PalfBaseInfo &palf_base_info,
+      const bool create_ls_with_palf, const palf::PalfBaseInfo &palf_base_info,
       const common::ObIArray<common::ObConfigPairs> &init_configs,
-      bool is_creating_standby,
-      const common::ObString &log_restore_source);
+      bool is_creating_standby, const common::ObString &log_restore_source);
+  static int batch_create_schema(
+      uint64_t tenant_id, ObDDLService &ddl_service,
+      common::ObIArray<share::schema::ObTableSchema> &table_schemas,
+      const int64_t begin, const int64_t end);
   int set_sys_ls_status(const uint64_t tenant_id);
   int create_tenant_sys_ls(
       const share::schema::ObTenantSchema &tenant_schema,
@@ -2050,6 +2052,9 @@ private:
   int create_sys_table_schemas(
       ObDDLOperator &ddl_operator,
       ObMySQLTransaction &trans,
+      common::ObIArray<share::schema::ObTableSchema> &tables);
+  int parallel_create_sys_table_schema(
+      uint64_t tenant_id,
       common::ObIArray<share::schema::ObTableSchema> &tables);
   int try_force_drop_tenant(const share::schema::ObTenantSchema &tenant_schema);
 

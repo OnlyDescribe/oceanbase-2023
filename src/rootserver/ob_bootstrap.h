@@ -172,6 +172,7 @@ private:
   virtual int check_is_already_bootstrap(bool &is_bootstrap);
   virtual int init_global_stat();
   virtual int init_sequence_id();
+  static int parallel_create_table_schema(ObDDLService &ddl_service, ObIArray<ObTableSchema> &table_schemas, int start, int end);
   virtual int init_system_data();
   virtual int init_all_zone_table();
   virtual int init_multiple_zone_deployment_table(common::ObISQLClient &sql_client);
