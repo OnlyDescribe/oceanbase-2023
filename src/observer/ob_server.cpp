@@ -1004,11 +1004,12 @@ int ObServer::start()
       FLOG_INFO("success to refresh server configure");
     }
 
-    bool synced = false;
+    // TODO(oldcb): 这里需要判断是否单机才能设置 true, 否则应该为false
+    bool synced = true; 
     while (OB_SUCC(ret) && !stop_ && !synced) {
       synced = multi_tenant_.has_synced();
       if (!synced) {
-        SLEEP(1);
+        USLEEP(100000);
       }
     }
     FLOG_INFO("check if multi tenant synced", KR(ret), K(stop_), K(synced));
@@ -1017,7 +1018,7 @@ int ObServer::start()
     while (OB_SUCC(ret) && !stop_ && !schema_ready) {
       schema_ready = schema_service_.is_sys_full_schema();
       if (!schema_ready) {
-        SLEEP(1);
+        USLEEP(100000);
       }
     }
     FLOG_INFO("check if schema ready", KR(ret), K(stop_), K(schema_ready));
@@ -1031,7 +1032,7 @@ int ObServer::start()
     while (OB_SUCC(ret) && !stop_ && !timezone_usable) {
       timezone_usable = tenant_timezone_mgr_.is_usable();
       if (!timezone_usable) {
-        SLEEP(1);
+        USLEEP(100000);
       }
     }
     FLOG_INFO("check if timezone usable", KR(ret), K(stop_), K(timezone_usable));
