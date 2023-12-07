@@ -281,6 +281,9 @@ private:
     common::ObArray<int64_t> accept_ok_promise_not_vote_before_local_ts_;
     common::ObArray<LogConfigVersion> follower_renew_lease_success_membership_version_;
   } *p_impl_;
+
+public:
+  PImpl* &get_p_impl() { return p_impl_;};
 };
 
 template <typename T>

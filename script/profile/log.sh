@@ -19,16 +19,16 @@ grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'start do_restart' * >
 grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'finish do_restart' * >> analyze.log
 
 # create tenant
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 1. start create tenant schema' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 1.2. finish grant pools' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2. start create tenant' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.1. finish create sys log stream' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.2. finish broadcast sys table schemas' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.3. finish create sys table tablets' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.4. finish init tenant schemas' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 3. finish create tenant end' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E '\[CREATE TENANT\] wait user ls created' * >> analyze.log
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E '\[CREATE TENANT\] create tenant' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 1. start create tenant schema' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 1.2. finish grant pools' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2. start create tenant' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.1. finish create sys log stream' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.2. finish broadcast sys table schemas' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.3. finish create sys table tablets' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 2.4. finish init tenant schemas' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'STEP 3. finish create tenant end' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E '\[CREATE TENANT\] wait user ls created' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E '\[CREATE TENANT\] create tenant' * >> analyze.log
 
 
 
@@ -41,4 +41,4 @@ grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'finish do_restart' * 
 # grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'observer start service' * >> analyze.log
 
 # 耗时久的过程
-# grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'cost=(1[0-9]{5,}|[2-9][0-9]{5,})' * >> analyze.log
+grep --exclude='analyze.log' --exclude='bootstrap.log' -E 'cost=(1[0-9]{5,}|[2-9][0-9]{5,})' * >> analyze.log
