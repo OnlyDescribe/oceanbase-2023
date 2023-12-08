@@ -109,9 +109,10 @@ if __name__ == "__main__":
     bin_abs_path = __observer_bin_path(home_abs_path)
     data_abs_path = os.path.abspath(__data_path(args.cluster_home_path))
 
-    if args.clean:
-        __clear_env(home_abs_path)
-        exit(0)
+    # if args.clean:
+    #     __clear_env(home_abs_path)
+    #     exit(0)
+    __clear_env(home_abs_path)
 
     __build_env(home_abs_path)
 
@@ -120,11 +121,11 @@ if __name__ == "__main__":
 
     os.chdir(args.cluster_home_path)
     observer_cmd = f"{bin_abs_path} {observer_args}"
-    # _logger.info(observer_cmd)
-    # shell_result = subprocess.run(observer_cmd, shell=True)
-    # _logger.info('deploy done. returncode=%d', shell_result.returncode)
+    _logger.info(observer_cmd)
+    shell_result = subprocess.run(observer_cmd, shell=True)
+    _logger.info('deploy done. returncode=%d', shell_result.returncode)
 
-    # time.sleep(2)
+    time.sleep(2)
     # try:
     
     db = __try_to_connect(args.ip, int(args.mysql_port))
@@ -170,3 +171,7 @@ if __name__ == "__main__":
     #     _logger.info('exception: %s', str(ex))
     #     _logger.info(traceback.format_exc())
     #     exit(1)
+    observer_bin_path = __observer_bin_path(home_abs_path)
+    pid = subprocess.getoutput(f'pidof {observer_bin_path}')
+    if pid:
+        subprocess.run(f'kill -9 {pid}', shell=True)
