@@ -23,6 +23,7 @@
 #include "logservice/palf/election/utils/election_common_define.h"
 #include "logservice/palf/election/utils/election_member_list.h"
 #include "logservice/palf/palf_callback.h"
+#include "observer/ob_server_struct.h"
 
 namespace oceanbase
 {
@@ -128,6 +129,11 @@ int ElectionProposer::set_member_list(const MemberList &new_member_list)
       // 初始单机情况, 直接跳过第一次选主过程直接设置主
       if (old_list.get_addr_list().empty() && new_member_list.get_addr_list().count() == 1 
                                                 && new_member_list.get_replica_num() == 1) {
+        if (!GCTX.is_inited()) {
+          ret = OB_INVALID_ARGUMENT;
+          LOG_SET_MEMBER(WARN, "gctx not init", "gctx inited", GCTX.is_inited(), KR(ret));
+        }
+        GCTX.is_single_node_ = true;
         // 参照 advance_ballot_number_and_reset_related_states_()
         // 清理切主流程中的相关状态
         ballot_number_ = 1;

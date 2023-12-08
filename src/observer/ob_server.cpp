@@ -1005,8 +1005,8 @@ int ObServer::start()
     }
 
     // TODO(oldcb): 这里需要判断是否单机才能设置 true, 否则应该为false
-    bool synced = true; 
-    while (OB_SUCC(ret) && !stop_ && !synced) {
+    bool synced = false; 
+    while (!GCTX.is_single_node() && OB_SUCC(ret) && !stop_ && !synced) {
       synced = multi_tenant_.has_synced();
       if (!synced) {
         USLEEP(100000);

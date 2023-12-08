@@ -4999,12 +4999,12 @@ int ObRootService::do_restart()
   }
 
   // broadcast root server address, ignore error
-  // if (OB_SUCC(ret)) {
-  //   int tmp_ret = update_rslist();
-  //   if (OB_SUCCESS != tmp_ret) {
-  //     FLOG_WARN("failed to update rslist but ignored", KR(tmp_ret));
-  //   }
-  // }
+  if (!GCTX.is_single_node() && OB_SUCC(ret)) {
+    int tmp_ret = update_rslist();
+    if (OB_SUCCESS != tmp_ret) {
+      FLOG_WARN("failed to update rslist but ignored", KR(tmp_ret));
+    }
+  }
 
   if (OB_SUCC(ret)) {
     //standby cluster trigger load_refresh_schema_status by heartbeat.
