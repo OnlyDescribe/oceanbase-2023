@@ -1466,7 +1466,8 @@ int ObDDLOperator::create_table(ObTableSchema &table_schema,
                                 ObMySQLTransaction &trans,
                                 const ObString *ddl_stmt_str/*=NULL*/,
                                 const bool need_sync_schema_version,
-                                const bool is_truncate_table /*false*/)
+                                const bool is_truncate_table, /*false*/
+                                bool update_table_schema_version /*false*/)
 {
   int ret = OB_SUCCESS;
   const uint64_t tenant_id = table_schema.get_tenant_id();
@@ -1482,12 +1483,18 @@ int ObDDLOperator::create_table(ObTableSchema &table_schema,
     LOG_WARN("fail to gen new schema_version", K(ret), K(tenant_id));
   } else {
     table_schema.set_schema_version(new_schema_version);
-    if (OB_FAIL(schema_service->get_table_sql_service().create_table(
+    ObTableSqlService &table_sql_service =
+        schema_service->get_table_sql_service();
+    if ((update_table_schema_version &&
+         OB_FAIL(table_sql_service.create_table(
+             table_schema, trans, ddl_stmt_str, need_sync_schema_version,
+             is_truncate_table)))
+        || (!update_table_schema_version && OB_FAIL(table_sql_service.create_table_not_update_schema(
         table_schema,
         trans,
         ddl_stmt_str,
         need_sync_schema_version,
-        is_truncate_table))) {
+        is_truncate_table)))) {
       RS_LOG(WARN, "failed to create table", K(ret));
     } else if (OB_FAIL(sync_version_for_cascade_table(tenant_id,
                table_schema.get_depend_table_ids(), trans))) {

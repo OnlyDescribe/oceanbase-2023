@@ -1187,7 +1187,7 @@ int ObBootstrap::batch_create_schema(ObDDLService &ddl_service,
         int64_t start_time = ObTimeUtility::current_time();
         if (OB_FAIL(ddl_operator.create_table(table, trans, ddl_stmt,
                                               need_sync_schema_version,
-                                              is_truncate_table))) {
+                                              is_truncate_table, false))) {
           LOG_WARN("add table schema failed", K(ret),
               "table_id", table.get_table_id(),
               "table_name", table.get_table_name());

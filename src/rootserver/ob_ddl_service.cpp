@@ -22764,8 +22764,9 @@ int ObDDLService::create_tenant_sys_ls(
   } else {
     DEBUG_SYNC(AFTER_CREATE_USER_TENANT_SYS_LOGSTREAM);
   }
-  LOG_INFO("[CREATE_TENANT] STEP 2.1. finish create sys log stream", KR(ret), K(tenant_schema),
-           "cost", ObTimeUtility::fast_current_time() - start_time, "wait leader", wait_leader);
+  LOG_INFO("[CREATE_TENANT] STEP 2.1. finish create sys log stream", 
+    "cost", ObTimeUtility::fast_current_time() - start_time,
+    KR(ret), K(tenant_schema), "wait leader", wait_leader);
   return ret;
 }
 
@@ -23143,20 +23144,24 @@ int ObDDLService::init_tenant_schema(
         }
       }
 
-      ObLSInfo sys_ls_info;
-      ObAddrArray addrs;
-      if (FAILEDx(GCTX.lst_operator_->get(
-          GCONF.cluster_id,
-          tenant_id,
-          SYS_LS,
-          share::ObLSTable::DEFAULT_MODE,
-          sys_ls_info))) {
-        LOG_WARN("fail to get sys ls info by operator", KR(ret), K(tenant_id));
-      } else if (OB_FAIL(sys_ls_info.get_paxos_member_addrs(addrs))) {
-        LOG_WARN("fail to get paxos member addrs", K(ret), K(tenant_id), K(sys_ls_info));
-      } else if (OB_FAIL(publish_schema(tenant_id, addrs))) {
-        LOG_WARN("fail to publish schema", KR(ret), K(tenant_id), K(addrs));
+      if (OB_FAIL(refresh_schema(tenant_id))) {
+        LOG_WARN("fail to refresh_schema by ddl_serveice", KR(ret), K(tenant_id));
       }
+      // refresh_schema
+      // ObLSInfo sys_ls_info;
+      // ObAddrArray addrs;
+      // if (FAILEDx(GCTX.lst_operator_->get(
+      //     GCONF.cluster_id,
+      //     tenant_id,
+      //     SYS_LS,
+      //     share::ObLSTable::DEFAULT_MODE,
+      //     sys_ls_info))) {
+      //   LOG_WARN("fail to get sys ls info by operator", KR(ret), K(tenant_id));
+      // } else if (OB_FAIL(sys_ls_info.get_paxos_member_addrs(addrs))) {
+      //   LOG_WARN("fail to get paxos member addrs", K(ret), K(tenant_id), K(sys_ls_info));
+      // } else if (OB_FAIL(publish_schema(tenant_id, addrs))) {
+      //   LOG_WARN("fail to publish schema", KR(ret), K(tenant_id), K(addrs));
+      // }
     }
 
     // 3. set baseline schema version
@@ -23207,6 +23212,7 @@ int ObDDLService::set_log_restore_source(
   return ret;
 }
 
+// parallel_create_sys_table_schema 专用
 int ObDDLService::batch_create_schema(uint64_t tenant_id, ObDDLService &ddl_service, ObIArray<ObTableSchema> &table_schemas,
                                      const int64_t begin, const int64_t end) {
   int ret = OB_SUCCESS;
@@ -23233,9 +23239,10 @@ int ObDDLService::batch_create_schema(uint64_t tenant_id, ObDDLService &ddl_serv
             !(ObSysTableChecker::is_sys_table_index_tid(table.get_table_id()) ||
               is_sys_lob_table(table.get_table_id()));
         int64_t start_time = ObTimeUtility::current_time();
+        // false 表示不刷新schema
         if (OB_FAIL(ddl_operator.create_table(table, trans, ddl_stmt,
                                               need_sync_schema_version,
-                                              is_truncate_table))) {
+                                              is_truncate_table, false))) {
           LOG_WARN("add table schema failed", K(ret),
               "table_id", table.get_table_id(),
               "table_name", table.get_table_name());
@@ -23304,7 +23311,7 @@ int ObDDLService::parallel_create_sys_table_schema(uint64_t tenant_id, common::O
           int64_t retry_cnt = 0;
           while (OB_SUCC(ret)) {
             if (OB_FAIL(batch_create_schema(tennat_id_, *ddl_server_, *tables_, start, end))) {
-              LOG_WARN("batch add table schema failed, need_retry", KR(ret), K(start), K(end));
+              LOG_WARN("batch add table schema failed, need_retry", KR(ret), K(start), K(end), K(tennat_id_));
               if (retry_cnt < MAX_RETRY_TIMES) {
                 ob_usleep(1 * 1000 * 1000L); // 1s
                 ret = OB_SUCCESS;
@@ -23376,6 +23383,8 @@ int ObDDLService::parallel_create_sys_table_schema(uint64_t tenant_id, common::O
     batch_create_runnable.stop();
     ret = batch_create_runnable.succeed;
     batch_create_runnable.destroy();
+
+    
   }
 
   return ret;
