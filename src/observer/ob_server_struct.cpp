@@ -45,6 +45,11 @@ bool ObGlobalContext::is_standby_cluster() const
   return false;
 }
 
+bool ObGlobalContext::is_single_node() const
+{
+  return is_single_node_;
+}
+
 common::ObClusterRole ObGlobalContext::get_cluster_role() const
 {
   return PRIMARY_CLUSTER;

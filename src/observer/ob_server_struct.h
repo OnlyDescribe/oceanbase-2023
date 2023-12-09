@@ -277,6 +277,7 @@ struct ObGlobalContext
 #endif
 
   bool inited_;
+  bool is_single_node_{false};
   transaction::ObIWeakReadService *weak_read_service_;
   share::ObSchemaStatusProxy *schema_status_proxy_;
   int64_t flashback_scn_;
@@ -297,6 +298,7 @@ struct ObGlobalContext
   bool is_started_and_can_weak_read() { return is_observer() && has_start_service(); }
   bool is_primary_cluster() const;
   bool is_standby_cluster() const;
+  bool is_single_node() const;
   common::ObClusterRole get_cluster_role() const;
   share::ServerServiceStatus get_server_service_status() const;
   void set_upgrade_stage(obrpc::ObUpgradeStage upgrade_stage) { upgrade_stage_ = upgrade_stage; }

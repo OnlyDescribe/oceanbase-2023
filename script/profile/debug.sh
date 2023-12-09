@@ -1,8 +1,8 @@
 #!/bin/bash
 PID=$(pidof observer)
 profile_dir=$(pwd)
-# cluster_home_path="/data/obcluster"
-cluster_home_path="/home/oldcb/Desktop/ob/data/obcluster"
+cluster_home_path="/data/obcluster"
+# cluster_home_path="/home/oldcb/Desktop/ob/data/obcluster"
 
 if [ -z "$PID" ]
 then
