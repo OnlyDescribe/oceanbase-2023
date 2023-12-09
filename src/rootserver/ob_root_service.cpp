@@ -4999,7 +4999,7 @@ int ObRootService::do_restart()
   }
 
   // broadcast root server address, ignore error
-  if (OB_SUCC(ret)) {
+  if (!GCTX.is_single_node() && OB_SUCC(ret)) {
     int tmp_ret = update_rslist();
     if (OB_SUCCESS != tmp_ret) {
       FLOG_WARN("failed to update rslist but ignored", KR(tmp_ret));
@@ -5113,7 +5113,7 @@ int ObRootService::do_restart()
 
   // broadcast root server address again, this task must be in the end part of do_restart,
   // because system may work properly without it.
-  if (FAILEDx(update_rslist())) {
+  if (FAILEDx(!GCTX.is_single_node() && update_rslist())) {
     FLOG_WARN("broadcast root address failed but ignored", KR(ret));
     // it's ok ret be overwritten, update_rslist_task will retry until succeed
     if (OB_FAIL(submit_update_rslist_task(true))) {
