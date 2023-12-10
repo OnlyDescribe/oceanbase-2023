@@ -46,7 +46,7 @@ def __try_to_connect(host, mysql_port:int, *, timeout_seconds=60):
             return mysql.connect(host=host, user="root", port=mysql_port, passwd="")
         except mysql.err.Error as error:
             error_return = error
-            time.sleep(1)
+            time.sleep(0.5)
 
     _logger.info('failed to connect to observer fater %f seconds', timeout_seconds)
     raise error_return
@@ -82,6 +82,7 @@ def __create_tenant(cursor, *,
 
 
 if __name__ == "__main__":
+    begin = datetime.datetime.now()
     log_level = logging.INFO
     log_format = "%(asctime)s.%(msecs)03d [%(levelname)-5s] - %(message)s " \
                 "(%(name)s [%(funcName)s@%(filename)s:%(lineno)s] [%(threadName)s] P:%(process)d T:%(thread)d)"
@@ -134,14 +135,12 @@ if __name__ == "__main__":
     shell_result = subprocess.run(observer_cmd, shell=True)
     _logger.info('deploy done. returncode=%d', shell_result.returncode)
 
-    time.sleep(2)
     # try:
     
     db = __try_to_connect(args.ip, int(args.mysql_port))
     cursor = db.cursor(cursor=mysql.cursors.DictCursor)
     _logger.info(f'connect to server success! host={args.ip}, port={args.mysql_port}')
 
-    begin = datetime.datetime.now()
 
     bootstrap_begin = datetime.datetime.now()
     cursor.execute(f"ALTER SYSTEM BOOTSTRAP ZONE '{args.zone}' SERVER '{rootservice}'")

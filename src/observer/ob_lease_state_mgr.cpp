@@ -163,7 +163,7 @@ int ObLeaseStateMgr::register_self_busy_wait()
       if (OB_FAIL(ret)) {
         LOG_WARN("register failed, will try again", KR(ret),
             "retry latency", REGISTER_TIME_SLEEP / 1000000);
-        ob_usleep(static_cast<useconds_t>(REGISTER_TIME_SLEEP));
+        ob_usleep(static_cast<useconds_t>(REGISTER_TIME_SLEEP) / 10); // 200ms
         int tmp_ret = OB_SUCCESS;
         if (OB_SUCCESS != (tmp_ret = rs_mgr_->renew_master_rootserver())) {
           LOG_WARN("renew_master_rootserver failed", K(tmp_ret));

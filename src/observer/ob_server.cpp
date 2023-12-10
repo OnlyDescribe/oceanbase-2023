@@ -10,6 +10,7 @@
  * See the Mulan PubL v2 for more details.
  */
 
+#include "util/easy_time.h"
 #define USING_LOG_PREFIX SERVER
 
 #include "observer/ob_server.h"
@@ -256,7 +257,7 @@ int ObServer::init(const ObServerOptions &opts, const ObPLogWriterCfg &log_cfg)
   int ret = OB_SUCCESS;
   opts_ = opts;
   scramble_rand_.init(static_cast<uint64_t>(start_time_), static_cast<uint64_t>(start_time_ / 2));
-
+  auto start_time = fast_current_time();
   // server parameters be inited here.
   if (OB_FAIL(init_config())) {
     LOG_ERROR("init config failed", KR(ret));
@@ -502,7 +503,7 @@ int ObServer::init(const ObServerOptions &opts, const ObPLogWriterCfg &log_cfg)
     LOG_DBA_ERROR(OB_ERR_OBSERVER_START, "msg", "observer init() has failure", KR(ret));
   } else {
     FLOG_INFO("[OBSERVER_NOTICE] success to init observer", "cluster_id", obrpc::ObRpcNetHandler::CLUSTER_ID,
-        "lib::g_runtime_enabled", lib::g_runtime_enabled);
+        "lib::g_runtime_enabled", lib::g_runtime_enabled, K(fast_current_time() - start_time));
   }
   return ret;
 }
@@ -807,6 +808,7 @@ int ObServer::start()
   int ret = OB_SUCCESS;
   int64_t reserved_size = 0;
   gctx_.status_ = SS_STARTING;
+  auto start_time = fast_current_time();
   // begin to start a observer
   FLOG_INFO("[OBSERVER_NOTICE] start observer begin");
 
@@ -1077,7 +1079,7 @@ int ObServer::start()
   } else if (!stop_) {
     GCTX.status_ = SS_SERVING;
     GCTX.start_service_time_ = ObTimeUtility::current_time();
-    FLOG_INFO("[OBSERVER_NOTICE] observer start service", "start_service_time", GCTX.start_service_time_);
+    FLOG_INFO("[OBSERVER_NOTICE] observer start service", "start_service_time", GCTX.start_service_time_, K(fast_current_time() - start_time));
   } else {
     FLOG_INFO("[OBSERVER_NOTICE] observer is set to stop", KR(ret), K_(stop));
     LOG_DBA_ERROR(OB_ERR_OBSERVER_START, "msg", "observer start process is interrupted", KR(ret), K_(stop));

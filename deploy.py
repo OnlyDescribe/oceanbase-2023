@@ -46,7 +46,7 @@ def __try_to_connect(host, mysql_port:int, *, timeout_seconds=60):
             return mysql.connect(host=host, user="root", port=mysql_port, passwd="")
         except mysql.err.Error as error:
             error_return = error
-            time.sleep(1)
+            time.sleep(0.5)
 
     _logger.info('failed to connect to observer fater %f seconds', timeout_seconds)
     raise error_return
@@ -63,17 +63,15 @@ def __create_tenant(cursor, *,
     create_tenant_sql = f"CREATE TENANT IF NOT EXISTS {tenant_name} resource_pool_list = ('{resource_pool_name}') set ob_tcp_invited_nodes = '%';"
 
     cursor.execute(create_unit_sql)
-    _logger.info(f'unit create done: {create_unit_sql}')
 
     cursor.execute(create_resource_pool_sql)
-    _logger.info(f'resource pool create done: {create_unit_sql}')
 
     cursor.execute(create_tenant_sql)
-    _logger.info(f'tenant create done: {create_unit_sql}')
 
 
 if __name__ == "__main__":
     log_level = logging.INFO
+    begin_time = datetime.datetime.now()
     log_format = "%(asctime)s.%(msecs)03d [%(levelname)-5s] - %(message)s " \
                 "(%(name)s [%(funcName)s@%(filename)s:%(lineno)s] [%(threadName)s] P:%(process)d T:%(thread)d)"
     log_date_format = "%Y-%m-%d %H:%M:%S"
@@ -116,15 +114,14 @@ if __name__ == "__main__":
     __build_env(home_abs_path)
 
     rootservice = f'{args.ip}:{args.rpc_port}'
-    observer_args = f"-p {args.mysql_port} -P {args.rpc_port} -z {args.zone} -c {args.cluster_id} -d {data_abs_path} -i {args.devname} -r {rootservice} -I {args.ip} -o {args.opt_str}"
+    observer_args = f"-p {args.mysql_port} -P {args.rpc_port} -z {args.zone} -c {args.cluster_id} -d {data_abs_path} -i {args.devname} -r {rootservice} -I {args.ip} -o {args.opt_str} -l ERROR"
 
     os.chdir(args.cluster_home_path)
     observer_cmd = f"{bin_abs_path} {observer_args}"
-    _logger.info(observer_cmd)
+    # _logger.info(observer_cmd)
     shell_result = subprocess.run(observer_cmd, shell=True)
     _logger.info('deploy done. returncode=%d', shell_result.returncode)
 
-    time.sleep(2)
     try:
         db = __try_to_connect(args.ip, int(args.mysql_port))
         cursor = db.cursor(cursor=mysql.cursors.DictCursor)
@@ -143,6 +140,7 @@ if __name__ == "__main__":
         _logger.info('checkout server status ok')
         # ObRootService::check_config_result
 
+        tenant_begin = datetime.datetime.now()
         __create_tenant(cursor,
                         cpu=args.tenant_cpu,
                         memory_size=args.tenant_memory,
@@ -150,7 +148,9 @@ if __name__ == "__main__":
                         resource_pool_name=args.tenant_resource_pool_name,
                         zone_name=args.zone,
                         tenant_name=args.tenant_name)
-        _logger.info('create tenant done')
+        tenant_end = datetime.datetime.now()
+        _logger.info('create tenant done, cost: %s ms' % ((tenant_end - tenant_begin).total_seconds() * 1000))
+        _logger.info('tot cost: %s ms' % ((tenant_end - begin_time).total_seconds() * 1000))
 
     except mysql.err.Error as e:
         _logger.info("deploy observer failed. ex=%s", str(e))

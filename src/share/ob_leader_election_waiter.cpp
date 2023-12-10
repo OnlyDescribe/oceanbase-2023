@@ -217,7 +217,7 @@ int ObLSLeaderElectionWaiter::wait_elect_leader(
           break;
         }
       }
-      sleep_interval = std::min(sleep_interval * 2, check_interval);
+      sleep_interval = std::min(sleep_interval, check_interval);
     }
     if (stop_ && OB_SUCC(ret)) {
       ret = OB_CANCELED;

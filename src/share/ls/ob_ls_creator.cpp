@@ -295,7 +295,7 @@ int ObLSCreator::create_tenant_sys_ls(
   }
 
   const int64_t cost = ObTimeUtility::current_time() - start_time;
-  LOG_INFO("finish to create log stream", KR(ret), K_(id), K_(tenant_id), K(cost));
+  LOG_INFO("finish to create log stream", KR(ret), K_(id), K_(tenant_id), K(cost), K(paxos_replica_num));
   LS_EVENT_ADD(tenant_id_, id_, "create_ls_finish", ret, paxos_replica_num, "", K(cost));
   return ret;
 }
