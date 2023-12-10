@@ -14,7 +14,7 @@ else
 fi
 cd $profile_dir
 python3 deploy_observer.py --cluster-home-path="$cluster_home_path"
-perf record -F 999 -g -p $(pidof observer) -- sleep 100 &
+perf record -F 999 -g -p $(pidof observer) -- sleep 20 &
 python3 deploy_bootstrap.py --cluster-home-path="$cluster_home_path" &
 wait
 perf script -i perf.data &> perf.unfold

@@ -569,21 +569,65 @@ int ObBootstrap::execute_bootstrap(rootserver::ObServerZoneOpService &server_zon
     LOG_WARN("ob system is already bootstrap, cannot bootstrap again", K(ret));
   } else if (OB_FAIL(check_bootstrap_rs_list(rs_list_))) {
     LOG_WARN("failed to check_bootstrap_rs_list", K_(rs_list), K(ret));
-  } else if (OB_FAIL(create_all_core_table_partition())) {
-    LOG_WARN("fail to create all core_table partition", KR(ret));
-  } else if (OB_FAIL(set_in_bootstrap())) {
-    LOG_WARN("failed to set in bootstrap", K(ret));
-  } else if (OB_FAIL(init_global_stat())) {
-    LOG_WARN("failed to init_global_stat", K(ret));
-  } else if (OB_FAIL(construct_all_schema(table_schemas))) {
-    LOG_WARN("construct all schema fail", K(ret));
-  } else if (OB_FAIL(broadcast_sys_schema(table_schemas))) {
-    LOG_WARN("broadcast_sys_schemas failed", K(table_schemas), K(ret));
-  } else if (OB_FAIL(create_all_partitions())) {
-    LOG_WARN("create all partitions fail", K(ret));
-  } else if (OB_FAIL(create_all_schema(ddl_service_, table_schemas))) {
-    LOG_WARN("create_all_schema failed",  K(table_schemas), K(ret));
-  }
+  } 
+  // else if (OB_FAIL(create_all_core_table_partition())) {
+  //   LOG_WARN("fail to create all core_table partition", KR(ret));
+  // } else if (OB_FAIL(set_in_bootstrap())) {
+  //   LOG_WARN("failed to set in bootstrap", K(ret));
+  // } else if (OB_FAIL(init_global_stat())) {
+  //   LOG_WARN("failed to init_global_stat", K(ret));
+  // } else if (OB_FAIL(construct_all_schema(table_schemas))) {
+  //   LOG_WARN("construct all schema fail", K(ret));
+  // } else if (OB_FAIL(broadcast_sys_schema(table_schemas))) {
+  //   LOG_WARN("broadcast_sys_schemas failed", K(table_schemas), K(ret));
+  // } else if (OB_FAIL(create_all_partitions())) {
+  //   LOG_WARN("create all partitions fail", K(ret));
+  // } else if (OB_FAIL(create_all_schema(ddl_service_, table_schemas))) {
+  //   LOG_WARN("create_all_schema failed",  K(table_schemas), K(ret));
+  // }
+
+  std::thread t0([&]{        
+    lib::set_thread_name("execute_bootstrap_do", 0);
+    if (OB_FAIL(create_all_core_table_partition())) {
+      LOG_WARN("fail to create all core_table partition", KR(ret));
+    } else if (OB_FAIL(set_in_bootstrap())) {
+      LOG_WARN("failed to set in bootstrap", K(ret));
+    } else if (OB_FAIL(init_global_stat())) {
+      LOG_WARN("failed to init_global_stat", K(ret));
+    } else if (OB_FAIL(create_all_partitions())) {
+      LOG_WARN("create all partitions fail", K(ret));
+    }
+  });
+
+  std::thread t1([&]{
+      lib::set_thread_name("execute_bootstrap_do", 1);
+      if (OB_FAIL(construct_all_schema(table_schemas))) {
+      LOG_WARN("construct all schema fail", K(ret));
+    } else if (OB_FAIL(broadcast_sys_schema(table_schemas))) {
+      LOG_WARN("broadcast_sys_schemas failed", K(table_schemas), K(ret));
+    } else if (OB_FAIL(create_all_schema(ddl_service_, table_schemas))) {
+      LOG_WARN("create_all_schema failed",  K(table_schemas), K(ret));
+    }
+  });
+  t0.join();
+  t1.join();
+
+  // std::thread t2([&]{        
+  //   lib::set_thread_name("execute_bootstrap_do", 2);
+  //   if (OB_FAIL(create_all_partitions())) {
+  //     LOG_WARN("create all partitions fail", K(ret));
+  //   }
+  // });
+  
+  // std::thread t3([&]{        
+  //   lib::set_thread_name("execute_bootstrap_do", 3);
+  //   if (OB_FAIL(create_all_schema(ddl_service_, table_schemas))) {
+  //     LOG_WARN("create_all_schema failed",  K(table_schemas), K(ret));
+  //   }
+  // });
+  // t2.join();
+  // t3.join();
+  
   BOOTSTRAP_CHECK_SUCCESS_V2("create_all_schema");
   ObMultiVersionSchemaService &schema_service = ddl_service_.get_schema_service();
 
@@ -796,6 +840,49 @@ int ObBootstrap::create_all_partitions()
           LOG_WARN("prepare create partition fail", K(ret));
         }
       }
+#if 0
+    std::vector<std::thread> ths;
+    int64_t batch_num = std::max(std::thread::hardware_concurrency(), 6u);
+
+    for(int64_t begin = 0; begin < batch_num; ++begin) {
+      std::thread th([&]{
+        lib::set_thread_name("prepare_create_partition_batch_do", begin);
+        // ObMySQLTransaction trans;
+        // ObTableCreator table_creator(OB_SYS_TENANT_ID,
+        //                         SCN::base_scn(),
+        //                         trans);
+        // if (OB_FAIL(trans.start(&sql_proxy, OB_SYS_TENANT_ID))) {
+        //   LOG_WARN("fail to start trans", KR(ret));
+        // } else if (OB_FAIL(table_creator.init(false/*need_tablet_cnt_check*/))) {
+        //   LOG_WARN("fail to init tablet creator", KR(ret));
+        // }
+        for (int64_t i = begin; i < sizeof(sys_table_schema_creators)/sizeof(schema_create_func) && NULL != sys_table_schema_creators[i]; i = i + batch_num) {
+          if (OB_FAIL(prepare_create_partition(
+              table_creator, sys_table_schema_creators[i]))) {
+            LOG_WARN("prepare create partition fail", K(ret));
+          }
+        }
+        // // execute creating tablet
+        // if (OB_SUCC(ret)) {
+        //   if (OB_FAIL(table_creator.execute())) {
+        //     LOG_WARN("execute create partition failed", K(ret));
+        //   }
+        // }
+        // if (trans.is_started()) {
+        //   int temp_ret = OB_SUCCESS;
+        //   bool commit = OB_SUCC(ret);
+        //   if (OB_SUCCESS != (temp_ret = trans.end(commit))) {
+        //     ret = (OB_SUCC(ret)) ? temp_ret : ret;
+        //     LOG_WARN("trans end failed", K(commit), K(temp_ret));
+        //   }
+        // }
+        });
+      ths.push_back(std::move(th));
+    }
+    for(auto &t: ths) {
+      t.join();
+    }
+#endif
       // execute creating tablet
       if (OB_SUCC(ret)) {
         if (OB_FAIL(table_creator.execute())) {
@@ -1275,7 +1362,7 @@ int ObBootstrap::add_servers_in_rs_list(rootserver::ObServerZoneOpService &serve
 int ObBootstrap::wait_all_rs_in_service()
 {
   int ret = OB_SUCCESS;
-  const int64_t check_interval = 500 * 1000;
+  const int64_t check_interval = 50 * 1000;
   int64_t left_time_can_sleep = WAIT_RS_IN_SERVICE_TIMEOUT_US;
   if (OB_FAIL(check_inner_stat())) {
     LOG_WARN("check_inner_stat failed", K(ret));

@@ -128,7 +128,7 @@ int ElectionProposer::set_member_list(const MemberList &new_member_list)
       }
       // 初始单机情况, 直接跳过第一次选主过程直接设置主
       if (old_list.get_addr_list().empty() && new_member_list.get_addr_list().count() == 1 
-                                                && new_member_list.get_replica_num() == 1) {
+                                           && new_member_list.get_replica_num() == 1) {
         if (!GCTX.is_inited()) {
           ret = OB_INVALID_ARGUMENT;
           LOG_SET_MEMBER(WARN, "gctx not init", "gctx inited", GCTX.is_inited(), KR(ret));
@@ -154,8 +154,14 @@ int ElectionProposer::set_member_list(const MemberList &new_member_list)
 
         int64_t &write_ts = memberlist_with_states_.get_p_impl()->accept_ok_promise_not_vote_before_local_ts_[0];
         write_ts = int64_t(get_monotonic_ts() + CALCULATE_LEASE_INTERVAL());
+        // 设置 member_list version
         LogConfigVersion &write_version = memberlist_with_states_.get_p_impl()->follower_renew_lease_success_membership_version_[0];
         write_version.generate(0, 1);
+        // MemberList member_list;
+        // member_list.assign(new_member_list);
+        // member_list.set_membership_version(write_version);
+        // memberlist_with_states_.set_member_list(member_list);
+
         (p_election_->role_change_cb_)(p_election_, ObRole::FOLLOWER, ObRole::LEADER, RoleChangeReason::DevoteToBeLeader);
         LOG_CHANGE_LEADER(INFO, "Single-node Scenario: Set leader.");
       }
