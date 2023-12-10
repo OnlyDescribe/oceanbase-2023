@@ -61,15 +61,24 @@ def __create_tenant(cursor, *,
     create_unit_sql = f'CREATE RESOURCE UNIT {unit_name} max_cpu={cpu},min_cpu={cpu}, memory_size={memory_size};'
     create_resource_pool_sql = f"CREATE RESOURCE POOL {resource_pool_name} unit='{unit_name}', unit_num=1,ZONE_LIST=('{zone_name}');"
     create_tenant_sql = f"CREATE TENANT IF NOT EXISTS {tenant_name} resource_pool_list = ('{resource_pool_name}') set ob_tcp_invited_nodes = '%';"
-
+    
+    begin = datetime.datetime.now()
     cursor.execute(create_unit_sql)
+    end = datetime.datetime.now()
     _logger.info(f'unit create done: {create_unit_sql}')
+    _logger.info('%s ms' % ((end - begin).total_seconds() * 1000))
 
+    begin = datetime.datetime.now()
     cursor.execute(create_resource_pool_sql)
+    end = datetime.datetime.now()
     _logger.info(f'resource pool create done: {create_unit_sql}')
+    _logger.info('%s ms' % ((end - begin).total_seconds() * 1000))
 
+    begin = datetime.datetime.now()
     cursor.execute(create_tenant_sql)
+    end = datetime.datetime.now()
     _logger.info(f'tenant create done: {create_unit_sql}')
+    _logger.info('%s ms' % ((end - begin).total_seconds() * 1000))
 
 
 if __name__ == "__main__":
