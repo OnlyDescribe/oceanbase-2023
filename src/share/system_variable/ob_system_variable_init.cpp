@@ -1417,7 +1417,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[96].default_value_ = "32" ;
+      ObSysVars[96].default_value_ = "64" ;
       ObSysVars[96].info_ = "The time limit for regular expression matching operations, default unit is milliseconds" ;
       ObSysVars[96].name_ = "regexp_time_limit" ;
       ObSysVars[96].data_type_ = ObIntType ;
@@ -1427,7 +1427,7 @@ static struct VarsInit{
       ObSysVars[96].id_ = SYS_VAR_REGEXP_TIME_LIMIT ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_REGEXP_TIME_LIMIT)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_REGEXP_TIME_LIMIT] = 96 ;
-      ObSysVars[96].base_value_ = "32" ;
+      ObSysVars[96].base_value_ = "64" ;
     ObSysVars[96].alias_ = "OB_SV_REGEXP_TIME_LIMIT" ;
     }();
 
@@ -1677,7 +1677,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[115].default_value_ = "5" ;
+      ObSysVars[115].default_value_ = "20" ;
       ObSysVars[115].info_ = "percentage of tenant memory resources that can be used by plan cache" ;
       ObSysVars[115].name_ = "ob_plan_cache_percentage" ;
       ObSysVars[115].data_type_ = ObIntType ;
@@ -1687,7 +1687,7 @@ static struct VarsInit{
       ObSysVars[115].id_ = SYS_VAR_OB_PLAN_CACHE_PERCENTAGE ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OB_PLAN_CACHE_PERCENTAGE)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OB_PLAN_CACHE_PERCENTAGE] = 115 ;
-      ObSysVars[115].base_value_ = "5" ;
+      ObSysVars[115].base_value_ = "20" ;
     ObSysVars[115].alias_ = "OB_SV_PLAN_CACHE_PERCENTAGE" ;
     }();
 
@@ -1707,7 +1707,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[117].default_value_ = "50" ;
+      ObSysVars[117].default_value_ = "70" ;
       ObSysVars[117].info_ = "memory usage percentage  of plan_cache_limit at which plan cache eviction will be stopped" ;
       ObSysVars[117].name_ = "ob_plan_cache_evict_low_percentage" ;
       ObSysVars[117].data_type_ = ObIntType ;
@@ -1717,7 +1717,7 @@ static struct VarsInit{
       ObSysVars[117].id_ = SYS_VAR_OB_PLAN_CACHE_EVICT_LOW_PERCENTAGE ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OB_PLAN_CACHE_EVICT_LOW_PERCENTAGE)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OB_PLAN_CACHE_EVICT_LOW_PERCENTAGE] = 117 ;
-      ObSysVars[117].base_value_ = "50" ;
+      ObSysVars[117].base_value_ = "70" ;
     ObSysVars[117].alias_ = "OB_SV_PLAN_CACHE_EVICT_LOW_PERCENTAGE" ;
     }();
 
@@ -1790,7 +1790,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[123].default_value_ = "5" ;
+      ObSysVars[123].default_value_ = "20" ;
       ObSysVars[123].info_ = "The percentage limitation of tenant memory for SQL execution." ;
       ObSysVars[123].name_ = "ob_sql_work_area_percentage" ;
       ObSysVars[123].data_type_ = ObIntType ;
@@ -1800,7 +1800,7 @@ static struct VarsInit{
       ObSysVars[123].id_ = SYS_VAR_OB_SQL_WORK_AREA_PERCENTAGE ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OB_SQL_WORK_AREA_PERCENTAGE)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OB_SQL_WORK_AREA_PERCENTAGE] = 123 ;
-      ObSysVars[123].base_value_ = "5" ;
+      ObSysVars[123].base_value_ = "20" ;
     ObSysVars[123].alias_ = "OB_SV_SQL_WORK_AREA_PERCENTAGE" ;
     }();
 
@@ -2007,7 +2007,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[139].default_value_ = "0" ;
+      ObSysVars[139].default_value_ = "2" ;
       ObSysVars[139].info_ = "JIT execution engine mode, default is AUTO" ;
       ObSysVars[139].name_ = "ob_enable_jit" ;
       ObSysVars[139].data_type_ = ObIntType ;
@@ -2016,7 +2016,7 @@ static struct VarsInit{
       ObSysVars[139].id_ = SYS_VAR_OB_ENABLE_JIT ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OB_ENABLE_JIT)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OB_ENABLE_JIT] = 139 ;
-      ObSysVars[139].base_value_ = "0" ;
+      ObSysVars[139].base_value_ = "2" ;
     ObSysVars[139].alias_ = "OB_SV_ENABLE_JIT" ;
     }();
 
@@ -2047,7 +2047,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[142].default_value_ = "3" ;
+      ObSysVars[142].default_value_ = "10" ;
       ObSysVars[142].info_ = "The limited percentage of tenant memory for sql audit" ;
       ObSysVars[142].name_ = "ob_sql_audit_percentage" ;
       ObSysVars[142].data_type_ = ObIntType ;
@@ -2057,7 +2057,7 @@ static struct VarsInit{
       ObSysVars[142].id_ = SYS_VAR_OB_SQL_AUDIT_PERCENTAGE ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OB_SQL_AUDIT_PERCENTAGE)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OB_SQL_AUDIT_PERCENTAGE] = 142 ;
-      ObSysVars[142].base_value_ = "3" ;
+      ObSysVars[142].base_value_ = "10" ;
     ObSysVars[142].alias_ = "OB_SV_SQL_AUDIT_PERCENTAGE" ;
     }();
 
@@ -2075,7 +2075,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[144].default_value_ = "0" ;
+      ObSysVars[144].default_value_ = "1" ;
       ObSysVars[144].info_ = "Enable use sql plan baseline" ;
       ObSysVars[144].name_ = "optimizer_use_sql_plan_baselines" ;
       ObSysVars[144].data_type_ = ObIntType ;
@@ -2083,12 +2083,12 @@ static struct VarsInit{
       ObSysVars[144].id_ = SYS_VAR_OPTIMIZER_USE_SQL_PLAN_BASELINES ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OPTIMIZER_USE_SQL_PLAN_BASELINES)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OPTIMIZER_USE_SQL_PLAN_BASELINES] = 144 ;
-      ObSysVars[144].base_value_ = "0" ;
+      ObSysVars[144].base_value_ = "1" ;
     ObSysVars[144].alias_ = "OB_SV_OPTIMIZER_USE_SQL_PLAN_BASELINES" ;
     }();
 
     [&] (){
-      ObSysVars[145].default_value_ = "0" ;
+      ObSysVars[145].default_value_ = "1" ;
       ObSysVars[145].info_ = "optimizer_capture_sql_plan_baselines enables or disables automitic capture plan baseline." ;
       ObSysVars[145].name_ = "optimizer_capture_sql_plan_baselines" ;
       ObSysVars[145].data_type_ = ObIntType ;
@@ -2096,7 +2096,7 @@ static struct VarsInit{
       ObSysVars[145].id_ = SYS_VAR_OPTIMIZER_CAPTURE_SQL_PLAN_BASELINES ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OPTIMIZER_CAPTURE_SQL_PLAN_BASELINES)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OPTIMIZER_CAPTURE_SQL_PLAN_BASELINES] = 145 ;
-      ObSysVars[145].base_value_ = "0" ;
+      ObSysVars[145].base_value_ = "1" ;
     ObSysVars[145].alias_ = "OB_SV_OPTIMIZER_CAPTURE_SQL_PLAN_BASELINES" ;
     }();
 
@@ -2195,7 +2195,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[153].default_value_ = "10" ;
+      ObSysVars[153].default_value_ = "15" ;
       ObSysVars[153].info_ = "percentage of tenant memory resources that can be used by tenant meta data" ;
       ObSysVars[153].name_ = "ob_reserved_meta_memory_percentage" ;
       ObSysVars[153].data_type_ = ObIntType ;
@@ -2205,7 +2205,7 @@ static struct VarsInit{
       ObSysVars[153].id_ = SYS_VAR_OB_RESERVED_META_MEMORY_PERCENTAGE ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_OB_RESERVED_META_MEMORY_PERCENTAGE)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_OB_RESERVED_META_MEMORY_PERCENTAGE] = 153 ;
-      ObSysVars[153].base_value_ = "10" ;
+      ObSysVars[153].base_value_ = "15" ;
     ObSysVars[153].alias_ = "OB_SV_RESERVED_META_MEMORY_PERCENTAGE" ;
     }();
 
@@ -2624,7 +2624,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[184].default_value_ = "0" ;
+      ObSysVars[184].default_value_ = "1" ;
       ObSysVars[184].info_ = "A DML statement can be parallelized only if you have explicitly enabled parallel DML in the session or in the SQL statement." ;
       ObSysVars[184].name_ = "_enable_parallel_dml" ;
       ObSysVars[184].data_type_ = ObIntType ;
@@ -2632,7 +2632,7 @@ static struct VarsInit{
       ObSysVars[184].id_ = SYS_VAR__ENABLE_PARALLEL_DML ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR__ENABLE_PARALLEL_DML)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR__ENABLE_PARALLEL_DML] = 184 ;
-      ObSysVars[184].base_value_ = "0" ;
+      ObSysVars[184].base_value_ = "1" ;
     ObSysVars[184].alias_ = "OB_SV__ENABLE_PARALLEL_DML" ;
     }();
 
@@ -3114,7 +3114,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[220].default_value_ = "1" ;
+      ObSysVars[220].default_value_ = "0" ;
       ObSysVars[220].info_ = "control wether we need to gather optimizer stats on insert into select/create table as select" ;
       ObSysVars[220].name_ = "_optimizer_gather_stats_on_load" ;
       ObSysVars[220].data_type_ = ObIntType ;
@@ -3122,7 +3122,7 @@ static struct VarsInit{
       ObSysVars[220].id_ = SYS_VAR__OPTIMIZER_GATHER_STATS_ON_LOAD ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR__OPTIMIZER_GATHER_STATS_ON_LOAD)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR__OPTIMIZER_GATHER_STATS_ON_LOAD] = 220 ;
-      ObSysVars[220].base_value_ = "1" ;
+      ObSysVars[220].base_value_ = "0" ;
     ObSysVars[220].alias_ = "OB_SV__OPTIMIZER_GATHER_STATS_ON_LOAD" ;
     }();
 
@@ -3166,7 +3166,7 @@ static struct VarsInit{
     }();
 
     [&] (){
-      ObSysVars[224].default_value_ = "0" ;
+      ObSysVars[224].default_value_ = "1" ;
       ObSysVars[224].info_ = "specifies whether automatic degree of parallelism will be enabled" ;
       ObSysVars[224].name_ = "parallel_degree_policy" ;
       ObSysVars[224].data_type_ = ObIntType ;
@@ -3175,7 +3175,7 @@ static struct VarsInit{
       ObSysVars[224].id_ = SYS_VAR_PARALLEL_DEGREE_POLICY ;
       cur_max_var_id = MAX(cur_max_var_id, static_cast<int64_t>(SYS_VAR_PARALLEL_DEGREE_POLICY)) ;
       ObSysVarsIdToArrayIdx[SYS_VAR_PARALLEL_DEGREE_POLICY] = 224 ;
-      ObSysVars[224].base_value_ = "0" ;
+      ObSysVars[224].base_value_ = "1" ;
     ObSysVars[224].alias_ = "OB_SV_PARALLEL_DEGREE_POLICY" ;
     }();
 
