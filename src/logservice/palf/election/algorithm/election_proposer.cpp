@@ -154,15 +154,36 @@ int ElectionProposer::set_member_list(const MemberList &new_member_list)
 
         int64_t &write_ts = memberlist_with_states_.get_p_impl()->accept_ok_promise_not_vote_before_local_ts_[0];
         write_ts = int64_t(get_monotonic_ts() + CALCULATE_LEASE_INTERVAL());
-        // 设置 member_list version
+        // 设置 member_list version, memberlist_with_states_
         LogConfigVersion &write_version = memberlist_with_states_.get_p_impl()->follower_renew_lease_success_membership_version_[0];
         write_version.generate(0, 1);
+        auto& p_impl = memberlist_with_states_.get_p_impl();
+        memberlist_with_states_.init_array_(p_impl->prepare_ok_, new_member_list.get_replica_num(), true);
+        memberlist_with_states_.init_array_(p_impl->accept_ok_promise_not_vote_before_local_ts_, new_member_list.get_replica_num(), write_ts);
+        memberlist_with_states_.init_array_(p_impl->follower_renew_lease_success_membership_version_, new_member_list.get_replica_num(), write_version);
         // MemberList member_list;
         // member_list.assign(new_member_list);
         // member_list.set_membership_version(write_version);
         // memberlist_with_states_.set_member_list(member_list);
+        // 
 
+        // ElectionChangeLeaderMsg change_leader_msg(p_election_->id_,
+        //                                     p_election_->get_self_addr(),
+        //                                     restart_counter_,
+        //                                     ballot_number_,
+        //                                     p_election_->get_ls_biggest_min_cluster_version_ever_seen_(),
+        //                                     switch_source_leader_ballot_,
+        //                                     p_election_->get_membership_version_());
+        // change_leader_msg.set_receiver(this->p_election_->get_self_addr());
+        // if (CLICK_FAIL(p_election_->send_(change_leader_msg))) {
+        //   LOG_CHANGE_LEADER(ERROR, "send change leader msg failed");
+        // } else {
+        //   LOG_CHANGE_LEADER(INFO, "change leader, old leader revoke");
+        // }
+        // ObStringHolder reason;
+        // p_election_->prepare_change_leader_cb_(p_election_->id_, this->p_election_->get_self_addr());
         (p_election_->role_change_cb_)(p_election_, ObRole::FOLLOWER, ObRole::LEADER, RoleChangeReason::DevoteToBeLeader);
+        p_election_->event_recorder_.report_decentralized_to_be_leader_event(memberlist_with_states_);
         LOG_CHANGE_LEADER(INFO, "Single-node Scenario: Set leader.");
       }
       if (old_list.only_membership_version_different(new_member_list)) {
@@ -259,7 +280,7 @@ int ElectionProposer::register_renew_lease_task_()
   int ret = OB_SUCCESS;
   // 如果续约不够快很多case不能及时切主，所以当MAX_TST设置的比较大时，也让续约间隔设置的短一些
   if (CLICK_FAIL(p_election_->timer_->schedule_task_repeat(renew_lease_task_handle_,
-                                                           std::min(int64_t(500_ms), CALCULATE_RENEW_LEASE_INTERVAL()),
+                                                           std::min(int64_t(50_ms), CALCULATE_RENEW_LEASE_INTERVAL()),
                                                            [this]() {
     int ret = OB_SUCCESS;
     LockGuard lock_guard(p_election_->lock_);
@@ -342,7 +363,7 @@ int ElectionProposer::start()
   #define PRINT_WRAPPER K(*this)
   ELECT_TIME_GUARD(500_ms);
   int ret = OB_SUCCESS;
-  if (CLICK_FAIL(reschedule_or_register_prepare_task_after_(3_s))) {
+  if (CLICK_FAIL(reschedule_or_register_prepare_task_after_(1_s))) {
     LOG_INIT(ERROR, "first time register devote task failed");
   } else if (CLICK_FAIL(register_renew_lease_task_())) {
     LOG_INIT(ERROR, "first time register renew lease task failed");

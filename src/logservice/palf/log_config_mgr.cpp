@@ -650,7 +650,7 @@ int LogConfigMgr::leader_do_loop_work(bool &need_change_config)
       PALF_LOG_RET(INFO, OB_SUCCESS, "set_sync_to_degraded_learners to false", K_(palf_id), K_(self));
     }
   }
-  if (is_leader_active && palf_reach_time_interval(PALF_BROADCAST_LEADER_INFO_INTERVAL_US, last_broadcast_leader_info_time_us_) &&
+  if (is_leader_active && palf_reach_time_interval(PALF_BROADCAST_LEADER_INFO_INTERVAL_US / 100, last_broadcast_leader_info_time_us_) &&
       OB_FAIL(submit_broadcast_leader_info_(proposal_id))) {
     PALF_LOG(WARN, "submit_broadcast_leader_info failed", KR(ret), K_(self), K_(palf_id));
   }

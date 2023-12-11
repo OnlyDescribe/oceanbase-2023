@@ -89,7 +89,7 @@ public:
   share::ObLSTableOperator &get_lst_operator() { return lst_operator_; }
 private:
   static const int64_t CHECK_LEADER_ELECT_INTERVAL_US = 10 * 1000L; //10ms
-  static const int64_t CHECK_LEADER_CHANGE_INTERVAL_US = 1000 * 1000L; //1s
+  static const int64_t CHECK_LEADER_CHANGE_INTERVAL_US = 0.1 * 1000 * 1000L; //1s->0.1s
 
   int wait_elect_leader(
       const uint64_t tenant_id,

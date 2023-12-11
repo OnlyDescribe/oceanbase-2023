@@ -22,7 +22,7 @@ namespace palf
 {
 LogLoopThread::LogLoopThread()
     : palf_env_impl_(NULL),
-      run_interval_(DEFAULT_LOG_LOOP_INTERVAL_US),
+      run_interval_(DEFAULT_LOG_LOOP_INTERVAL_US / 20),
       is_inited_(false)
 {
 }
@@ -44,7 +44,7 @@ int LogLoopThread::init(IPalfEnvImpl *palf_env_impl)
   } else {
     palf_env_impl_ = palf_env_impl;
     share::ObThreadPool::set_run_wrapper(MTL_CTX());
-    run_interval_ = DEFAULT_LOG_LOOP_INTERVAL_US;
+    run_interval_ = DEFAULT_LOG_LOOP_INTERVAL_US / 20;
     is_inited_ = true;
   }
 
@@ -128,8 +128,8 @@ void LogLoopThread::log_loop_()
       } else {
         // There is not any ls in period_freeze mode,
         // try set run_interval_ to 100ms.
-        if (run_interval_ < DEFAULT_LOG_LOOP_INTERVAL_US) {
-          run_interval_ = DEFAULT_LOG_LOOP_INTERVAL_US;
+        if (run_interval_ < DEFAULT_LOG_LOOP_INTERVAL_US / 20) {
+          run_interval_ = DEFAULT_LOG_LOOP_INTERVAL_US / 20;
           PALF_LOG(INFO, "LogLoopThread switch run_interval(us)", K_(run_interval), K(any_in_period_freeze_mode));
         }
       }

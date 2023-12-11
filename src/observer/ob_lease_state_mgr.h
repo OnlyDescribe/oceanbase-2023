@@ -90,7 +90,7 @@ private:
   private:
     DISALLOW_COPY_AND_ASSIGN(HeartBeat);
   };
-  static const int64_t DELAY_TIME = 2 * 1000 * 1000;//2s
+  static const int64_t DELAY_TIME = 1 * 1000 * 1000;//2s->1s
   static const int64_t RENEW_TIMEOUT = 2 * 1000 * 1000; //2s
   static const int64_t REGISTER_TIME_SLEEP = 2 * 1000 * 1000; //5s
 
