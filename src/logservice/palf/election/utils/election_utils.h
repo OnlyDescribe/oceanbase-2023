@@ -243,6 +243,7 @@ class EventRecorder;
 class MemberListWithStates
 {
   friend class EventRecorder;
+  friend class ElectionProposer;
 public:
   MemberListWithStates();
   int init();

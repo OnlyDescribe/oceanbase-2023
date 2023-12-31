@@ -148,6 +148,7 @@ int ElectionProposer::set_member_list(const MemberList &new_member_list)
 
         int64_t &write_ts = memberlist_with_states_.get_p_impl()->accept_ok_promise_not_vote_before_local_ts_[0];
         write_ts = int64_t(get_monotonic_ts() + CALCULATE_LEASE_INTERVAL());
+        // 设置 member_list version, memberlist_with_states_
         LogConfigVersion &write_version = memberlist_with_states_.get_p_impl()->follower_renew_lease_success_membership_version_[0];
         write_version.generate(0, 1);
         (p_election_->role_change_cb_)(p_election_, ObRole::FOLLOWER, ObRole::LEADER, RoleChangeReason::DevoteToBeLeader);
