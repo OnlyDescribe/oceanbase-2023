@@ -200,9 +200,9 @@ void ObHeartbeatService::do_work()
           }
         }
         if(OB_FAIL(ret)) {
-          idle(HB_FAILED_IDLE_TIME_US);
+          idle(HB_FAILED_IDLE_TIME_US / 20);
         } else {
-          idle(HB_IDLE_TIME_US);
+          idle(HB_IDLE_TIME_US / 10);
         }
       }
     } // end while
@@ -215,7 +215,7 @@ int ObHeartbeatService::check_upgrade_compat_()
     if (OB_FAIL(check_is_service_enabled_())) {
       LOG_WARN("fail to check whether the heartbeat service is enabled", KR(ret));
     }
-    idle(HB_IDLE_TIME_US);
+    idle(HB_IDLE_TIME_US / 10);
   }
   if (has_set_stop()) {
     ret = OB_NOT_MASTER;
